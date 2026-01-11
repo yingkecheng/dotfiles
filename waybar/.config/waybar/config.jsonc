@@ -1,0 +1,32 @@
+{
+  "layer": "top",
+  "position": "top",
+  "modules-left": [
+    "niri/workspaces",
+    "cpu",
+    "niri/window"
+  ],
+  "modules-center": [],
+  "modules-right": [
+    "clock",
+    "battery",
+    "tray"
+  ],
+  "clock": {
+    "interval": 1,
+    "format": "{:%H:%M:%S}",
+    "tooltip": false
+  },
+  "niri/workspaces": {},
+  "cpu": {
+    "interval": 5,
+    "format": "{usage}% ",
+    "on-click": "kitty -e btop",
+    "state": {
+      "high": 80
+    }
+  },
+  "niri/window": {
+    "format": "{app_id}"
+  }
+}
