@@ -1,0 +1,72 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(npm install*)",
+      "Bash(npx *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(node *)"
+    ]
+  },
+  "model": "opus",
+  "skillOverrides": {
+    "grove-capture": "user-invocable-only",
+    "oj-solver": "user-invocable-only"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-bare-pip.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "example-skills@anthropic-agent-skills": true,
+    "document-skills@anthropic-agent-skills": true,
+    "superpowers@superpowers-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    },
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    }
+  },
+  "effortLevel": "xhigh",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark"
+}

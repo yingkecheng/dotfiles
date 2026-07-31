@@ -1,0 +1,28 @@
+# 本包只收「人手写的配置」。凭据 / 会话 / 运行时产物一律挡在仓外。
+# 白名单之外的东西若哪天被误 cp 进来，这里兜底。
+
+# —— 凭据与会话（绝不进仓）——
+.credentials.json
+history.jsonl
+sessions/
+session-env/
+projects/
+transcripts/
+daemon*
+.last-*
+
+# —— 程序生成的产物 / 缓存 ——
+plugins/
+file-history/
+backups/
+cache/
+telemetry/
+paste-cache/
+shell-snapshots/
+jobs/
+tasks/
+stats-cache.json
+debug/
+downloads/
+settings.json.bak
+settings.json.orig

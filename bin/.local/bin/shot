@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# shot — 一键把屏上的东西喂给 AI。框选一次,两种出口:
+#   shot --path  划区键(Mod+Shift+A):截图存盘 → **文件路径**进剪贴板 → 终端 Ctrl+V 粘给 AI
+#   shot --ocr   识字键(Mod+Ctrl+A) :截图 → tesseract 识字 → **文字**进剪贴板
+#   shot         终端:同 --path,并把路径打到 stdout(可 `$(shot)` 直接嵌命令)
+#
+# 为什么剪贴板里放「路径」而不是图本身:AI CLI 读的是文件路径,这条路确定;
+# 而剪贴板同一时刻只能持一份内容,放了图就放不下路径。存盘也让回头还能找到那张图。
+# 与 wd 同构:一键 → 脚本 → 剪贴板 + mako。
+# niri 内建 Print / Ctrl+Print / Alt+Print 管「存档截图」,是另一条道,互不相干。
+set -uo pipefail
+
+DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots/ai"
+MODE=path
+case "${1:-}" in
+    --path) MODE=path; shift ;;
+    --ocr)  MODE=ocr;  shift ;;
+    "")     MODE=cli ;;
+esac
+
+die() {  # $1=正文;终端走 stderr,按键走 mako
+    if [[ $MODE == cli ]]; then printf '%s\n' "$1" >&2; else notify-send -a shot -t 4000 "截图" "$1"; fi
+    exit 1
+}
+
+for c in slurp grim wl-copy; do
+    command -v "$c" >/dev/null || die "缺 $c"
+done
+
+# 框选。用户按 Esc 取消 → slurp 非零退出,安静收场(不是错误)
+geom="$(slurp 2>/dev/null)" || exit 0
+[[ -n "$geom" ]] || exit 0
+
+mkdir -p "$DIR"
+file="$DIR/shot-$(date +%Y%m%d-%H%M%S).png"
+grim -g "$geom" "$file" 2>/dev/null || die "grim 截图失败"
+
+if [[ $MODE == ocr ]]; then
+    command -v tesseract >/dev/null || { rm -f "$file"; die "缺 tesseract"; }
+    # 按机器上真正装了的语言包拼 -l:中英都在就 chi_sim+eng,否则有啥用啥
+    langs="$(tesseract --list-langs 2>/dev/null | tail -n +2 | grep -vx osd | paste -sd+ -)"
+    [[ -n "$langs" ]] || { rm -f "$file"; die "tesseract 无可用语言包(装 tesseract-data-eng)"; }
+    text="$(tesseract "$file" - -l "$langs" 2>/dev/null | sed -e 's/[[:space:]]*$//' -e '/./,$!d')"
+    rm -f "$file"                       # OCR 只要字,图是中间产物
+    [[ -n "$(tr -d '[:space:]' <<<"$text")" ]] || die "没识别出文字(langs=$langs)"
+    printf '%s' "$text" | wl-copy
+    if [[ $MODE == cli ]]; then
+        printf '%s\n' "$text"
+    else
+        notify-send -a shot -t 5000 "OCR 已复制 ($langs)" "$(head -n 10 <<<"$text")"
+    fi
+    exit 0
+fi
+
+printf '%s' "$file" | wl-copy
+if [[ $MODE == cli ]]; then
+    printf '%s\n' "$file"
+else
+    notify-send -a shot -t 4000 "截图路径已复制" "${file/#$HOME/\~}"
+fi

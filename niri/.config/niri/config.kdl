@@ -429,6 +429,9 @@ binds {
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Mod+Shift+D hotkey-overlay-title="查词(划词): wd" { spawn "wd" "--notify"; }
     Mod+Ctrl+D hotkey-overlay-title="查词(手输): wd" { spawn "wd" "--ask"; }
+    // 喂给 AI:D=Dict 那对的同构镜像,A=AI。Shift 出「东西」(路径/词),Ctrl 出「文字」。
+    Mod+Shift+A hotkey-overlay-title="截图给AI(路径入剪贴板): shot" { spawn "shot" "--path"; }
+    Mod+Ctrl+A hotkey-overlay-title="截图OCR(文字入剪贴板): shot" { spawn "shot" "--ocr"; }
     Mod+B hotkey-overlay-title="Toggle Waybar" { spawn "pkill" "-USR1" "waybar"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
