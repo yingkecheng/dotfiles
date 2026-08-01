@@ -12,14 +12,33 @@ unset _p
 autoload -Uz compinit
 compinit
 
-export HISTFILE="$HOME/.zsh_history"
-export HISTSIZE=10000
-export SAVEHIST=10000
+# 补全行为（原只在 matebook 上有，并入共用份）
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$HOME/.zsh/cache"
 
+alias ll='ls -l'
+alias la='ls -la'
+alias p='paru'
+
+export HISTFILE="$HOME/.zsh_history"
+export HISTSIZE=100000
+export SAVEHIST=100000
+
+# 记录命令的执行时间戳和持续时间
+setopt EXTENDED_HISTORY
+# 多个终端会话实时共享历史（一个窗口输入的命令，另一个窗口立刻能用上下键找到）
 setopt SHARE_HISTORY
 setopt INC_APPEND_HISTORY
-setopt HIST_IGNORE_DUPS
+# 新命令与历史中某条重复时只留最新的，清掉旧的重复项
+setopt HIST_IGNORE_ALL_DUPS
+# 以空格开头的命令不写历史（输密码/敏感信息前加个空格）
 setopt HIST_IGNORE_SPACE
+# 存入前移除命令中多余的空白
+setopt HIST_REDUCE_BLANKS
+# 用 ! 语法（!! / !123）调历史时，只填到命令行不立即执行，方便先看一眼
+setopt HIST_VERIFY
 
 autoload -z edit-command-line
 zle -N edit-command-line
@@ -34,10 +53,12 @@ command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
 [[ -r /usr/share/fzf/completion.zsh ]] && source /usr/share/fzf/completion.zsh
 [[ -r /usr/share/fzf/key-bindings.zsh ]] && source /usr/share/fzf/key-bindings.zsh
 
-# 使用 rg 作为搜索引擎，忽略 .git
-export FZF_DEFAULT_COMMAND='rg --files --hidden --follow -g "!.git/"'
-# 预览窗口设置：使用 bat 高亮代码
-export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --preview 'bat --style=numbers --color=always --line-range :500 {}'"
+# fzf 的两个外部依赖也要守卫：rg 缺了会让 fzf 列不出文件，bat 缺了预览窗报错。
+# 缺件时退回 fzf 自带行为，而不是配了个跑不动的命令。
+command -v rg >/dev/null && export FZF_DEFAULT_COMMAND='rg --files --hidden --follow -g "!.git/"'
+FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+command -v bat >/dev/null && FZF_DEFAULT_OPTS+=" --preview 'bat --style=numbers --color=always --line-range :500 {}'"
+export FZF_DEFAULT_OPTS
 
 # uv 装出来的 PATH 片段（机器相关，缺了不报错）
 [[ -r "$HOME/.local/bin/env" ]] && . "$HOME/.local/bin/env"
