@@ -15,7 +15,9 @@ else
 fi
 
 # Does the command invoke a bare pip install (incl. `python -m pip install`)?
-if printf '%s' "$cmd" | grep -Eq '(^|[;&|`(]|[[:space:]])(pip3?|python3?[[:space:]]+-m[[:space:]]+pip)[[:space:]]+install'; then
+# 前导字符类里带上引号:无 jq 时扫的是原始 JSON,pip 前面紧挨着的就是 `"`;
+# 有 jq 时它也覆盖了 sh -c "pip install …" 这种嵌套引用,两边都更准。
+if printf '%s' "$cmd" | grep -Eq '(^|[;&|`("'"'"']|[[:space:]])(pip3?|python3?[[:space:]]+-m[[:space:]]+pip)[[:space:]]+install'; then
   # `uv pip install` is fine — uv is managing it.
   if printf '%s' "$cmd" | grep -Eq '\buv[[:space:]]+pip[[:space:]]'; then
     exit 0
