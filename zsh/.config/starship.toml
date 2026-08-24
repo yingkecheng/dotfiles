@@ -1,133 +1,74 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-# S1 版式（2026-08-24）：两行提示符，左行只放「路径 + git」，语言版本/conda/耗时/时间
-# 全部挪到右侧 RPROMPT，第二行只有 ❯ —— 在 105 列的 tmux pane 里给命令留满打字区。
-# 路径不再用 [directory]，改由 zshrc 的 _pwd_short 钩子算好塞进 $PWD_SHORT（预算式硬上限）。
-
-add_newline = false
-
-format = """
-[](peach)\
-${env_var.PWD_SHORT}\
-[](bg:yellow fg:peach)\
-$git_branch\
-$git_status\
-[](fg:yellow)\
-$line_break\
-$character"""
-
-right_format = """
-$cmd_duration\
-[](fg:green)\
-$c\
-$rust\
-$golang\
-$nodejs\
-$php\
-$java\
-$kotlin\
-$haskell\
-$python\
-[](fg:sapphire bg:green)\
-$conda\
-[](fg:lavender bg:sapphire)\
-$time"""
+# 版式:starship 内置 pure-preset(2026-08-24 由 powerline 换过来)——无背景块、无版本号堆,
+# 一行「路径 + 分支」,换行后只有 ❯。配色换成 catppuccin_mocha,与 kitty/waybar/mako 一致。
+# 路径不用 [directory](只能按层数截断,治不了单段 49 字符的包名),改读 zshrc 里 _pwd_short
+# 算好的 $PWD_SHORT(按列数设硬上限)。改配置后老 shell 要 `exec zsh` 才会重新定义该钩子,
+# 否则路径处显示 ? ——这是 default 值,不是坏了。
 
 palette = 'catppuccin_mocha'
 
-# 路径段。真值由 zshrc 的 _pwd_short 在每次 chpwd 时算好导出，starship 只负责显示。
-# 若 PWD_SHORT 未设（非 zsh 场景），退回显示 ?，不至于让 powerline 分隔符错位。
+format = """
+${env_var.PWD_SHORT}\
+$git_branch\
+$git_state\
+$git_status\
+$cmd_duration\
+$line_break\
+$python\
+$character"""
+
 [env_var.PWD_SHORT]
 variable = "PWD_SHORT"
 default = "?"
-style = "bg:peach fg:crust"
-format = "[ $env_value ]($style)"
+format = "[$env_value](blue) "
 
-[git_branch]
-symbol = ""
-style = "bg:yellow"
-format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
+[username]
+disabled = true
 
-[git_status]
-style = "bg:yellow"
-format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
-
-[nodejs]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[c]
-symbol = " "
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[rust]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[golang]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[php]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[java]
-symbol = " "
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[kotlin]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[haskell]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[python]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version)(\(#$virtualenv\)) ](fg:crust bg:green)]($style)'
-
-[conda]
-symbol = "  "
-style = "fg:crust bg:sapphire"
-format = '[$symbol$environment ]($style)'
-ignore_base = false
-
-[time]
-disabled = false
-time_format = "%R"
-style = "bg:lavender"
-format = '[[  $time ](fg:crust bg:lavender)]($style)'
-
-[line_break]
-disabled = false
+[hostname]
+disabled = true
 
 [character]
-disabled = false
-success_symbol = '[❯](bold fg:green)'
-error_symbol = '[❯](bold fg:red)'
-vimcmd_symbol = '[❮](bold fg:green)'
-vimcmd_replace_one_symbol = '[❮](bold fg:lavender)'
-vimcmd_replace_symbol = '[❮](bold fg:lavender)'
-vimcmd_visual_symbol = '[❮](bold fg:yellow)'
+success_symbol = "[❯](mauve)"
+error_symbol = "[❯](red)"
+vimcmd_symbol = "[❮](green)"
+vimcmd_visual_symbol = "[❮](yellow)"
+vimcmd_replace_symbol = "[❮](lavender)"
+vimcmd_replace_one_symbol = "[❮](lavender)"
 
+[git_branch]
+format = "[$branch]($style)"
+style = "overlay1"
+
+[git_status]
+format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](flamingo) ($ahead_behind$stashed)]($style)"
+style = "sapphire"
+conflicted = "\u200b"
+untracked = "\u200b"
+modified = "\u200b"
+staged = "\u200b"
+renamed = "\u200b"
+deleted = "\u200b"
+stashed = "≡"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "overlay1"
+
+# 保留原配置的长命令通知:固件编译跑过 45s 就弹 mako,别丢
 [cmd_duration]
+format = "[$duration]($style) "
+style = "yellow"
 show_milliseconds = true
-format = " in $duration "
-style = "bg:lavender"
-disabled = false
 show_notifications = true
 min_time_to_notify = 45000
+
+[python]
+format = "[$virtualenv]($style) "
+style = "overlay1"
+detect_extensions = []
+detect_files = []
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
