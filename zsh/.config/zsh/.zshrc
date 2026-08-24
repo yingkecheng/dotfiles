@@ -2,6 +2,30 @@
 # dotfiles 管理（stow zsh）。双机共用一份 —— 凡引用外部包/工具的行都带存在性守卫，
 # 缺件时静默跳过而非报错刷屏。真相在 ~/dotfiles/zsh/，勿直接改 ~/.config/zsh/.zshrc。
 
+# 提示符的路径段。starship 的 [directory] 只能按「层数」截断，治不了单段名字本身就
+# 49 字符的情况（OpenWrt 包名+版本+git hash、buildroot 包目录、rust target triple…）。
+# 这里改成按「列数」设硬上限：先砍层数 3→2→1，砍到只剩叶子还超预算，才砍段内保头保尾。
+# 纯 zsh 内建、无 fork（实测每次 cd 约 0.04ms），算好导出给 starship 的 env_var 模块读。
+# 窄 pane 里嫌长就调 PWD_SHORT_BUDGET。
+: ${PWD_SHORT_BUDGET:=56}
+_pwd_short() {
+  local budget=$PWD_SHORT_BUDGET p=${PWD/#$HOME/\~} out keep
+  local -a seg
+  if (( ${#p} <= budget )); then export PWD_SHORT=$p; return; fi
+  seg=(${(s:/:)p})
+  for keep in 3 2 1; do
+    (( keep >= $#seg )) && continue
+    out="…/${(j:/:)seg[-keep,-1]}"
+    (( ${#out} <= budget )) && { export PWD_SHORT=$out; return }
+  done
+  local leaf=$seg[-1] avail=$(( budget - 2 )) head tail
+  head=$(( (avail - 1) * 2 / 3 )); tail=$(( avail - 1 - head ))
+  export PWD_SHORT="…/${leaf[1,head]}…${leaf[-tail,-1]}"
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd _pwd_short
+_pwd_short
+
 command -v starship >/dev/null && eval "$(starship init zsh)"
 
 for _p in zsh-autosuggestions zsh-syntax-highlighting; do

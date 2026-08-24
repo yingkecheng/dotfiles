@@ -1,15 +1,24 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# S1 版式（2026-08-24）：两行提示符，左行只放「路径 + git」，语言版本/conda/耗时/时间
+# 全部挪到右侧 RPROMPT，第二行只有 ❯ —— 在 105 列的 tmux pane 里给命令留满打字区。
+# 路径不再用 [directory]，改由 zshrc 的 _pwd_short 钩子算好塞进 $PWD_SHORT（预算式硬上限）。
+
+add_newline = false
+
 format = """
-[](red)\
-$os\
-$username\
-[](bg:peach fg:red)\
-$directory\
-[](bg:yellow fg:peach)\
+[](peach)\
+${env_var.PWD_SHORT}\
+[](bg:yellow fg:peach)\
 $git_branch\
 $git_status\
-[](fg:yellow bg:green)\
+[](fg:yellow)\
+$line_break\
+$character"""
+
+right_format = """
+$cmd_duration\
+[](fg:green)\
 $c\
 $rust\
 $golang\
@@ -19,61 +28,20 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:green bg:sapphire)\
+[](fg:sapphire bg:green)\
 $conda\
-[](fg:sapphire bg:lavender)\
-$time\
-[ ](fg:lavender)\
-$cmd_duration\
-$line_break\
-$character"""
+[](fg:lavender bg:sapphire)\
+$time"""
 
 palette = 'catppuccin_mocha'
 
-[os]
-disabled = false
-style = "bg:red fg:crust"
-
-[os.symbols]
-Windows = ""
-Ubuntu = "󰕈"
-SUSE = ""
-Raspbian = "󰐿"
-Mint = "󰣭"
-Macos = "󰀵"
-Manjaro = ""
-Linux = "󰌽"
-Gentoo = "󰣨"
-Fedora = "󰣛"
-Alpine = ""
-Amazon = ""
-Android = ""
-AOSC = ""
-Arch = "󰣇"
-Artix = "󰣇"
-CentOS = ""
-Debian = "󰣚"
-Redhat = "󱄛"
-RedHatEnterprise = "󱄛"
-
-[username]
-show_always = true
-style_user = "bg:red fg:crust"
-style_root = "bg:red fg:crust"
-format = '[ $user]($style)'
-
-[directory]
+# 路径段。真值由 zshrc 的 _pwd_short 在每次 chpwd 时算好导出，starship 只负责显示。
+# 若 PWD_SHORT 未设（非 zsh 场景），退回显示 ?，不至于让 powerline 分隔符错位。
+[env_var.PWD_SHORT]
+variable = "PWD_SHORT"
+default = "?"
 style = "bg:peach fg:crust"
-format = "[ $path ]($style)"
-truncation_length = 3
-truncation_symbol = "…/"
-
-[directory.substitutions]
-"Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = "󰝚 "
-"Pictures" = " "
-"Developer" = "󰲋 "
+format = "[ $env_value ]($style)"
 
 [git_branch]
 symbol = ""
@@ -129,11 +97,6 @@ symbol = ""
 style = "bg:green"
 format = '[[ $symbol( $version)(\(#$virtualenv\)) ](fg:crust bg:green)]($style)'
 
-[docker_context]
-symbol = ""
-style = "bg:sapphire"
-format = '[[ $symbol( $context) ](fg:crust bg:sapphire)]($style)'
-
 [conda]
 symbol = "  "
 style = "fg:crust bg:sapphire"
@@ -147,7 +110,7 @@ style = "bg:lavender"
 format = '[[  $time ](fg:crust bg:lavender)]($style)'
 
 [line_break]
-disabled = true
+disabled = false
 
 [character]
 disabled = false
